@@ -4,7 +4,8 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from.models import Task
 from .serializers import TaskSerializer
-from django.http import Http404
+from django.http import Http404, HttpResponse
+from rest_framework.renderers import JSONRenderer
 
 class TaskList(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -47,3 +48,26 @@ class TaskDetail (APIView):
         task = self.get_object(id)
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+class ExportToJSON(APIView):
+    renderer_classes = [JSONRenderer]
+      
+    def get(self, request):
+        tasks = Task.objects.all()
+        serializer = TaskSerializer(tasks, many=True)
+        content = JSONRenderer().render(serializer.data)
+        response = HttpResponse(content, content_type='application/json')
+        response['Content-Disposition'] = 'attachment; filename="tasks.json"'
+        return response
+    
+class ExportToTXT(APIView):
+    renderer_classes = [JSONRenderer]
+        
+    def get(self, request):
+        tasks = Task.objects.all()
+        serializer = TaskSerializer(tasks, many=True)
+        content = JSONRenderer().render(serializer.data)
+        response = HttpResponse(content, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="tasks.txt"'
+        return response
