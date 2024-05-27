@@ -7,7 +7,7 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['titulo', 'prazo', 'descricao', 'finalizada']
         extra_kwargs = {             
-            'title': {'required': True}
+            'titulo': {'required': True}
         }
         
   

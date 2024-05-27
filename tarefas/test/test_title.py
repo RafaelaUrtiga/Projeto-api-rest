@@ -22,7 +22,6 @@ class AccountTests(APITestCase):
         self.assertEqual(response.data['titulo'][0], 'Este campo é obrigatório.')  # Verifica a mensagem de erro
         
     def test_deadline_not_lower_than_2000(self):
-       def test_deadline_not_lower_than_2000(self):
         past_date = date(1999, 12, 31)  # Data anterior a 01/01/2000
         data = {
             'titulo': 'Tarefa Teste',
@@ -30,28 +29,10 @@ class AccountTests(APITestCase):
             'descricao': 'Descrição da tarefa',
             'finalizada': False
         }
-        
+
         url = reverse('task-list')  
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)  # Verifica se a requisição retorna um status de erro
         self.assertIn('prazo', response.data)  # Verifica se o campo 'prazo' está presente nos dados de resposta
         self.assertEqual(response.data['prazo'][0], "O prazo não pode ser inferior ao ano 2000.")  # Verifica a mensagem de erro retornada
-        
-        
-        '''
-        # Teste para data posterior a 01/01/2000
-        future_date = date.today() + timedelta(days=1)  # Data futura
-        data_valida = {
-            'titulo': 'Tarefa Teste',
-            'prazo': future_date,
-            'descricao': 'Descrição da tarefa',
-            'finalizada': False
-        }
-        response = self.client.post(url, data_valida, format='json')
-
-        # Verifica se a requisição retorna um status de sucesso 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Verifica se o campo 'prazo' está presente nos dados de resposta e correto
-        self.assertEqual(response.data['prazo'], str(future_date))
-        '''
