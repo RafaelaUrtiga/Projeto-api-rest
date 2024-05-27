@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from.models import Task
 from .serializers import TaskSerializer
-from django.http import Http404, HttpResponse, JsonResponse
-import requests
-from django.shortcuts import render
+from django.http import Http404, HttpResponse
+import json
+from django.contrib.auth.models import User
 
 class TaskList(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -50,28 +50,36 @@ class TaskDetail (APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
     
-class ExportToJSON(APIView):
-      
+class ExportTasks(APIView):
+ 
     def get(self, request):
         tasks = Task.objects.all()
+        format = request.GET.get('format')
+        
+        if format == 'json':
+            return self.export_to_json(tasks)
+        elif format == 'txt':
+            return self.export_to_txt(tasks)
+        else:
+            return Response({'error': 'Invalid format. Please specify "json" or "txt".'}, status=400)
+    
+        
+    def export_to_json(self, tasks):
         serializer = TaskSerializer(tasks, many=True)
-        response = HttpResponse(serializer.data, content_type='application/json')
+        json_data = json.dumps(serializer.data, indent=4)  # converte o serializer em string
+        response = HttpResponse(json_data, content_type='application/json')
         response['Content-Disposition'] = 'attachment; filename="tasks.json"'
         return response
     
-class ExportToTXT(APIView):
-          
-    def get(self, request):
-        tasks = Task.objects.all()
-        content =''
-        
+    def export_to_txt(self, tasks):
+        content = ''
         for task in tasks:
             serializer_task = TaskSerializer(task).data
             content += (
                 f'Titulo: {serializer_task["titulo"]}, '
                 f'Descricao: {serializer_task["descricao"]}, '
                 f'Prazo: {serializer_task["prazo"]}, '
-                f'finalizada: {serializer_task["finalizada"]}\n'
+                f'Finalizada: {serializer_task["finalizada"]}\n'
             )
         
         response = HttpResponse(content, content_type='text/plain')
